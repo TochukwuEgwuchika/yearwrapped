@@ -41,6 +41,11 @@
     --wrapped-purple: 270 80% 60%;
     --wrapped-blue: 210 90% 55%;
     --wrapped-yellow: 45 95% 55%;
+    --wrapped-ocean: 195 90% 50%;
+    --wrapped-forest: 160 70% 40%;
+    --wrapped-berry: 340 80% 55%;
+    --wrapped-fire: 15 90% 55%;
+    --wrapped-midnight: 250 60% 35%;
 
     /* Gradients */
     --gradient-magenta: linear-gradient(135deg, hsl(330 90% 60%) 0%, hsl(280 80% 50%) 100%);
@@ -48,6 +53,11 @@
     --gradient-aurora: linear-gradient(135deg, hsl(150 80% 50%) 0%, hsl(210 90% 55%) 100%);
     --gradient-cosmic: linear-gradient(135deg, hsl(270 80% 60%) 0%, hsl(210 90% 55%) 100%);
     --gradient-golden: linear-gradient(135deg, hsl(45 95% 55%) 0%, hsl(25 95% 55%) 100%);
+    --gradient-ocean: linear-gradient(135deg, hsl(195 90% 50%) 0%, hsl(220 80% 45%) 100%);
+    --gradient-forest: linear-gradient(135deg, hsl(160 70% 40%) 0%, hsl(120 60% 35%) 100%);
+    --gradient-berry: linear-gradient(135deg, hsl(340 80% 55%) 0%, hsl(300 70% 45%) 100%);
+    --gradient-fire: linear-gradient(135deg, hsl(15 90% 55%) 0%, hsl(40 95% 50%) 100%);
+    --gradient-midnight: linear-gradient(135deg, hsl(250 60% 35%) 0%, hsl(280 50% 25%) 100%);
 
     /* Fonts */
     --font-display: 'Syne', sans-serif;
@@ -97,6 +107,26 @@
   
   .gradient-golden {
     background: var(--gradient-golden);
+  }
+
+  .gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+
+  .gradient-forest {
+    background: var(--gradient-forest);
+  }
+
+  .gradient-berry {
+    background: var(--gradient-berry);
+  }
+
+  .gradient-fire {
+    background: var(--gradient-fire);
+  }
+
+  .gradient-midnight {
+    background: var(--gradient-midnight);
   }
 
   .text-gradient-magenta {
