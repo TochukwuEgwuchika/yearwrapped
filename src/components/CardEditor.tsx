@@ -55,17 +55,41 @@ export const CardEditor = ({ category, onBack, onNext, remainingCount = 0 }: Car
     if (!cardRef.current) return;
     setIsDownloading(true);
     try {
-      // Wait a bit for any images to be fully rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Clone the node and inline all images as base64
+      const clonedNode = cardRef.current.cloneNode(true) as HTMLElement;
       
+      // Find all images and ensure they have the data URL properly set
+      const images = clonedNode.querySelectorAll('img');
+      for (const img of images) {
+        if (imagePreview) {
+          // Create a canvas to draw the image
+          const canvas = document.createElement('canvas');
+          const originalImg = cardRef.current.querySelector('img') as HTMLImageElement;
+          if (originalImg && originalImg.complete) {
+            canvas.width = originalImg.naturalWidth || 128;
+            canvas.height = originalImg.naturalHeight || 128;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(originalImg, 0, 0);
+              img.src = canvas.toDataURL('image/png');
+            }
+          }
+        }
+      }
+
       const dataUrl = await toPng(cardRef.current, { 
         quality: 1, 
         pixelRatio: 2, 
         backgroundColor: 'transparent',
         cacheBust: true,
-        skipAutoScale: true,
-        // Include images by fetching them
-        includeQueryParams: true,
+        fetchRequestInit: {
+          mode: 'cors',
+          cache: 'no-cache',
+        },
+        filter: (node) => {
+          // Include all nodes
+          return true;
+        },
       });
       const link = document.createElement('a');
       link.download = `wrapped-2026-${category.id}.png`;
