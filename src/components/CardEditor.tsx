@@ -55,13 +55,25 @@ export const CardEditor = ({ category, onBack, onNext, remainingCount = 0 }: Car
     if (!cardRef.current) return;
     setIsDownloading(true);
     try {
-      const dataUrl = await toPng(cardRef.current, { quality: 1, pixelRatio: 2, backgroundColor: 'transparent' });
+      // Wait a bit for any images to be fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const dataUrl = await toPng(cardRef.current, { 
+        quality: 1, 
+        pixelRatio: 2, 
+        backgroundColor: 'transparent',
+        cacheBust: true,
+        skipAutoScale: true,
+        // Include images by fetching them
+        includeQueryParams: true,
+      });
       const link = document.createElement('a');
       link.download = `wrapped-2026-${category.id}.png`;
       link.href = dataUrl;
       link.click();
       toast.success('Card downloaded successfully!');
     } catch (error) {
+      console.error('Download error:', error);
       toast.error('Failed to download card. Please try again.');
     } finally {
       setIsDownloading(false);
