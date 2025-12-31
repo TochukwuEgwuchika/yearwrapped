@@ -1,8 +1,8 @@
 import { Linkedin } from 'lucide-react';
 
 const creators = [
-{ name: “Egwuchika”, linkedin: “https://x.com/tochi_egwuchika?s=21” },
-{ name: “Johnnie”, linkedin: “https://www.linkedin.com/in/johnnie-chukwudi-6b5988246/” },
+{ name: 'Egwuchika', linkedin: 'https://x.com/tochi_egwuchika?s=21' },
+{ name: 'Johnnie', linkedin: 'https://www.linkedin.com/in/johnnie-chukwudi-6b5988246/' },
 ];
 
 export const Footer = () => {
