@@ -4,6 +4,7 @@ import { Share2, Copy, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
+import { waitForImagesInNode } from '@/lib/images';
 
 interface ShareButtonsProps {
   cardRef: RefObject<HTMLDivElement>;
@@ -54,10 +55,17 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
 
     setIsGenerating(true);
     try {
+      // Ensure all <img> tags inside the card have loaded/decoded (iOS Safari export reliability)
+      await waitForImagesInNode(cardRef.current);
+
+      const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
+      const pixelRatio = isIOS ? 2 : 4;
+
       const dataUrl = await toPng(cardRef.current, {
-        pixelRatio: 4,
+        pixelRatio,
         cacheBust: true,
         skipAutoScale: true,
+        backgroundColor: '#ffffff',
         filter: (node) => {
           if (node instanceof Element) {
             if (node.classList?.contains('bg-noise')) {
