@@ -161,48 +161,59 @@ export const CardEditor = ({
   };
 
   const generateCardImage = async () => {
-  if (!cardRef.current) return null;
-  const card = cardRef.current;
+    if (!cardRef.current) return null;
+    const card = cardRef.current;
 
-  // ✅ Wait for all images to load BEFORE capturing
-  await waitForImagesInNode(card);
+    // Ensure all <img> assets have fully loaded/decoded before capture (iOS Safari)
+    await waitForImagesInNode(card);
 
-  // Add extra time for iOS to decode the image
-  await new Promise(resolve => setTimeout(resolve, 100));
+    // Debug info for verification
+    const imgs = Array.from(card.querySelectorAll("img"));
+    console.debug(
+      "[export] imagePreview src prefix:",
+      imagePreview?.slice(0, 64) || "(none)",
+    );
+    console.debug(
+      "[export] imgs:",
+      imgs.map((i) => ({ src: i.src?.slice(0, 64), complete: i.complete, w: i.naturalWidth, h: i.naturalHeight })),
+    );
 
-  const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
-  const isMobileSafari =
-    /Safari/i.test(navigator.userAgent) &&
-    !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/i.test(navigator.userAgent) &&
-    /Mobile|iP(ad|hone|od)/i.test(navigator.userAgent);
+    const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
+    const isMobileSafari =
+      /Safari/i.test(navigator.userAgent) &&
+      !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/i.test(navigator.userAgent) &&
+      /Mobile|iP(ad|hone|od)/i.test(navigator.userAgent);
 
-  const scale = isIOS ? 2 : 4;
+    // iOS canvas memory is limited; keep a conservative scale.
+    const scale = isIOS ? 2 : 4;
 
-  const options = {
-    scale,
-    backgroundColor: "#ffffff",
-    maximumCanvasSize: isIOS ? 4096 : 0,
-    filter: (node: Node) => {
-      if (node instanceof Element) {
-        if (node.classList?.contains("bg-noise")) return false;
+    const options = {
+      scale,
+      backgroundColor: "#ffffff",
+      // Keep canvas size conservative on iOS to reduce blank exports.
+      maximumCanvasSize: isIOS ? 4096 : 0,
+      filter: (node: Node) => {
+        if (node instanceof Element) {
+          if (node.classList?.contains("bg-noise")) return false;
+        }
+        return true;
+      },
+    };
+
+    // Safari warm-up render
+    if (isMobileSafari) {
+      try {
+        await domToPng(card, options);
+        await new Promise((r) => setTimeout(r, 50));
+      } catch {
+        // ignore warm-up errors
       }
-      return true;
-    },
-  };
-
-  // Safari warm-up render
-  if (isMobileSafari) {
-    try {
-      await domToPng(card, options);
-      await new Promise((r) => setTimeout(r, 100)); // Increased delay
-    } catch {
-      // ignore warm-up errors
     }
-  }
 
-  const dataUrl = await domToPng(card, options);
-  return dataUrl;
-};
+    const dataUrl = await domToPng(card, options);
+
+    return dataUrl;
+  };
 
   const handleDownload = async () => {
     if (!cardRef.current) return;
