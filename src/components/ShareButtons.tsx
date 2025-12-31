@@ -43,6 +43,15 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const isMobileSafari = () => {
+    if (typeof navigator === 'undefined') return false;
+    return (
+      /Safari/i.test(navigator.userAgent) &&
+      !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/i.test(navigator.userAgent) &&
+      /Mobile|iP(ad|hone|od)/i.test(navigator.userAgent)
+    );
+  };
+
   // Generate image from card ref
   const generateImage = async (): Promise<string | null> => {
     // Use cached image if available
@@ -61,12 +70,12 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
       const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
       const pixelRatio = isIOS ? 2 : 4;
 
-      const dataUrl = await toPng(cardRef.current, {
+      const options = {
         pixelRatio,
         cacheBust: true,
         skipAutoScale: true,
         backgroundColor: '#ffffff',
-        filter: (node) => {
+        filter: (node: unknown) => {
           if (node instanceof Element) {
             if (node.classList?.contains('bg-noise')) {
               return false;
@@ -74,7 +83,20 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
           }
           return true;
         },
-      });
+      };
+
+      // Mobile Safari sometimes returns an "empty"/incomplete canvas on the first run.
+      // Warm it up with a no-op render, then do the real render.
+      if (isMobileSafari()) {
+        try {
+          await toPng(cardRef.current, options);
+          await new Promise((r) => setTimeout(r, 50));
+        } catch {
+          // ignore warm-up errors; we'll still attempt the real render
+        }
+      }
+
+      const dataUrl = await toPng(cardRef.current, options);
 
       // Notify parent to save the wrapped
       onImageGenerated?.(dataUrl);
