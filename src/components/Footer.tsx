@@ -1,4 +1,4 @@
-import { Linkedin } from “lucide-react”;
+import { Linkedin } from 'lucide-react';
 
 const creators = [
 { name: “Egwuchika”, linkedin: “https://x.com/tochi_egwuchika?s=21” },
