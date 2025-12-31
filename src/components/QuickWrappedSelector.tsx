@@ -28,7 +28,7 @@ const POPULAR_SUBCATEGORY_IDS = [
   'favorite-song',
   'favorite-movie',
   'food-ate-most',
-  'highlights-2026',
+  'highlights-2025',
   'top-5-friends',
   'best-purchase',
   'personal-award',

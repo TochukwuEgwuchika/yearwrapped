@@ -1,142 +1,174 @@
-import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
+import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
+import { useGSAP } from '@gsap/react';
+import { YEAR } from '@/lib/config';
 
 interface LandingHeroProps {
   onGetStarted: () => void;
 }
 
 export const LandingHero = ({ onGetStarted }: LandingHeroProps) => {
+  const container = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const yourRef = useRef<HTMLHeadingElement>(null);
+  const yearRef = useRef<HTMLHeadingElement>(null);
+  const wrappedRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useGSAP(() => {
+    if (!yourRef.current || !yearRef.current || !wrappedRef.current) return;
+
+    const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+    // 1. Badge fade in
+    tl.from(badgeRef.current, {
+      opacity: 0,
+      y: -20,
+      duration: 0.6
+    });
+
+    // 2. "YOUR" - character cascade with 3D flip
+    const yourSplit = SplitText.create(yourRef.current, {
+      type: "chars",
+      mask: "chars"
+    });
+
+    gsap.set(yourSplit.chars, {
+      y: 120,
+      opacity: 0,
+      rotateX: -90,
+      transformOrigin: "50% 100%"
+    });
+
+    tl.to(yourSplit.chars, {
+      y: 0,
+      opacity: 1,
+      rotateX: 0,
+      duration: 1,
+      stagger: 0.04,
+      ease: "power4.out"
+    }, "-=0.2");
+
+    // 3. "2025" - scale punch with counter
+    const counter = { value: 1900 };
+    gsap.set(yearRef.current, { scale: 0.5, opacity: 0 });
+
+    tl.to(yearRef.current, {
+      scale: 1,
+      opacity: 1,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    }, "-=0.6");
+
+    tl.to(counter, {
+      value: YEAR,
+      duration: 1.2,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (yearRef.current) {
+          yearRef.current.textContent = Math.round(counter.value).toString();
+        }
+      }
+    }, "<");
+
+    // 4. "WRAPPED" - wave from center
+    const wrappedSplit = SplitText.create(wrappedRef.current, {
+      type: "chars",
+      mask: "chars"
+    });
+
+    gsap.set(wrappedSplit.chars, {
+      y: 100,
+      opacity: 0,
+      scale: 0.5
+    });
+
+    tl.to(wrappedSplit.chars, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      duration: 0.8,
+      stagger: {
+        each: 0.04,
+        from: "center"
+      },
+      ease: "back.out(1.7)"
+    }, "-=0.8");
+
+    // 5. Subtitle fade up
+    tl.from(subtitleRef.current, {
+      y: 30,
+      opacity: 0,
+      duration: 0.8
+    }, "-=0.4");
+
+    // 6. Button bounce in (no opacity animation - always visible)
+    tl.from(buttonRef.current, {
+      y: 40,
+      scale: 0.9,
+      duration: 0.8,
+      ease: "back.out(1.7)"
+    }, "-=0.5");
+
+    // Cleanup
+    return () => {
+      yourSplit.revert();
+      wrappedSplit.revert();
+    };
+  }, { scope: container });
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
-      {/* Animated background gradients */}
+    <section
+      ref={container}
+      className="relative min-h-screen overflow-hidden gradient-magenta"
+    >
+      {/* Animated gradient blobs */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full gradient-magenta opacity-30 blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full gradient-aurora opacity-20 blur-3xl"
-          animate={{
-            x: [0, -100, 0],
-            y: [0, -50, 0],
-            scale: [1.2, 1, 1.2],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full gradient-sunset opacity-20 blur-3xl"
-          animate={{
-            x: [0, -50, 0],
-            y: [0, 100, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
       </div>
 
-      <div className="relative z-10 text-center max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="mb-6"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border text-sm text-muted-foreground backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-wrapped-magenta" />
-            Your 2025 Story Awaits
-          </span>
-        </motion.div>
+      {/* Noise texture */}
+      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="font-display text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight mb-6"
-        >
-          <span className="text-foreground">Your Year</span>
-          <br />
-          <span className="text-gradient-magenta">Wrapped</span>
-        </motion.h1>
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-10">
+        {/* Badge */}
+        <div ref={badgeRef} className="pill-badge mb-4">
+          <span className="pill-badge-dot" />
+          <span>Your {YEAR} recap</span>
+        </div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
-        >
-          Create stunning, shareable cards that celebrate your people, moments, and achievements of 2025.
-        </motion.p>
+        {/* Headlines */}
+        <div className="text-center select-none leading-none">
+          <h1 ref={yourRef} className="hero-text">
+            YOUR
+          </h1>
+          <h1 ref={yearRef} className="hero-text-year -mt-4">
+            {YEAR}
+          </h1>
+          <h1 ref={wrappedRef} className="hero-text hero-text-accent -mt-4">
+            WRAPPED
+          </h1>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <Button
-            onClick={onGetStarted}
-            size="lg"
-            className="group text-lg px-8 py-6 rounded-full gradient-magenta border-0 hover:opacity-90 transition-all duration-300 glow-effect"
-          >
-            Create Your Wrapped
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </motion.div>
+        {/* Subtitle */}
+        <p ref={subtitleRef} className="hero-subtitle mt-6 mb-8 px-4">
+          Create stunning, shareable cards for your year's best moments.
+        </p>
 
-        {/* Floating cards preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="mt-16 flex justify-center items-end gap-4 sm:gap-6"
+        {/* CTA Button - ALWAYS VISIBLE */}
+        <button
+          ref={buttonRef}
+          onClick={onGetStarted}
+          className="hero-cta z-50"
+          style={{ opacity: 1 }}
         >
-          {[
-            { gradient: 'gradient-magenta', delay: 0, rotate: -6 },
-            { gradient: 'gradient-aurora', delay: 0.5, rotate: 0 },
-            { gradient: 'gradient-sunset', delay: 1, rotate: 6 },
-          ].map((card, i) => (
-            <motion.div
-              key={i}
-              className={`${card.gradient} rounded-2xl sm:rounded-3xl shadow-2xl`}
-              style={{
-                width: i === 1 ? '140px' : '100px',
-                height: i === 1 ? '200px' : '150px',
-                transform: `rotate(${card.rotate}deg)`,
-              }}
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 3,
-                delay: card.delay,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <div className="p-4 h-full flex flex-col justify-end">
-                <div className="w-8 h-1 bg-foreground/30 rounded-full mb-2" />
-                <div className="w-12 h-1 bg-foreground/20 rounded-full" />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+          Start Your Drop
+        </button>
       </div>
     </section>
   );

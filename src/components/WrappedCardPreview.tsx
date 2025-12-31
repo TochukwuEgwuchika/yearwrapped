@@ -1,27 +1,18 @@
 import { forwardRef } from 'react';
-import { Subcategory, GradientType } from '@/types/wrapped';
+import { Subcategory } from '@/types/wrapped';
+import { gradientStyles } from '@/lib/gradients';
+import { YEAR, WATERMARK } from '@/lib/config';
+import { cn } from '@/lib/utils';
 
 interface WrappedCardPreviewProps {
   category: Subcategory;
   formData: Record<string, string | number>;
   imageUrl?: string | null;
+  userName?: string;
 }
 
-const gradientStyles: Record<GradientType, string> = {
-  magenta: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-  sunset: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
-  aurora: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-  cosmic: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-  golden: 'linear-gradient(135deg, #eab308 0%, #f97316 100%)',
-  ocean: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-  forest: 'linear-gradient(135deg, #059669 0%, #16a34a 100%)',
-  berry: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
-  fire: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)',
-  midnight: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-};
-
 export const WrappedCardPreview = forwardRef<HTMLDivElement, WrappedCardPreviewProps>(
-  ({ category, formData, imageUrl }, ref) => {
+  ({ category, formData, imageUrl, userName }, ref) => {
     // Generic card renderer that works for any category
     const renderGenericCard = () => {
       const textFields = category.fields.filter((f) => f.type === 'text' || f.type === 'textarea');
@@ -30,71 +21,90 @@ export const WrappedCardPreview = forwardRef<HTMLDivElement, WrappedCardPreviewP
       const secondaryFields = textFields.slice(1);
 
       return (
-        <>
-          <div className="text-center mb-6">
-            <p className="text-lg opacity-80 font-medium mb-2">2026</p>
-            <h3 className="text-2xl font-bold uppercase tracking-wider opacity-90">{category.title}</h3>
+        <div className="relative z-10 flex flex-col h-full">
+            {/* Header */}
+          <div className="flex justify-between items-start mb-6 border-b border-white/10 pb-4">
+            <div>
+                 <p className="text-xs font-bold tracking-[0.2em] uppercase opacity-70 mb-1">{YEAR} WRAPPED</p>
+                 <h3 className="text-2xl font-black uppercase tracking-tight leading-none">{category.title}</h3>
+            </div>
+             <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center glass-circle">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+             </div>
           </div>
 
           {imageUrl && (
             <div 
-              className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-white/30 shadow-xl"
-              style={{
-                backgroundImage: `url(${imageUrl})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
+              className="relative w-full aspect-square mb-6 rounded-2xl overflow-hidden border border-white/20 shadow-2xl group"
+            >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
+                <div 
+                    className="absolute inset-0 bg-cover bg-center duration-500 group-hover:scale-110"
+                    style={{ backgroundImage: `url(${imageUrl})` }}
+                />
+            </div>
           )}
 
-          <div className="text-center flex-1 flex flex-col justify-center">
+          <div className="flex-1 flex flex-col justify-center relative">
             {primaryField && (
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight">
+              <h2 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-[0.9] tracking-tighter drop-shadow-lg">
                 {(formData[primaryField.id] as string) || primaryField.placeholder || primaryField.label}
               </h2>
             )}
 
             {numberFields.length > 0 && formData[numberFields[0].id] && (
-              <div className="mt-4">
-                <p className="text-5xl font-extrabold">{formData[numberFields[0].id]}</p>
-                <p className="text-lg opacity-80 mt-1">{numberFields[0].label.toLowerCase()}</p>
+              <div className="mt-4 glass-panel-strong rounded-2xl p-4 border border-white/10 inline-block">
+                <p className="text-6xl font-black tracking-tighter">{formData[numberFields[0].id]}</p>
+                <p className="text-sm font-bold opacity-80 uppercase tracking-widest mt-1">{numberFields[0].label}</p>
               </div>
             )}
 
             {secondaryFields.length > 0 && formData[secondaryFields[0].id] && (
-              <div className="bg-black/20 rounded-xl p-4 mt-auto">
-                <p className="text-base opacity-90">"{formData[secondaryFields[0].id]}"</p>
+              <div className="mt-auto pt-6">
+                <div className="relative pl-6 border-l-2 border-white/30">
+                     <p className="text-lg font-medium italic leading-relaxed opacity-90">"{formData[secondaryFields[0].id]}"</p>
+                </div>
               </div>
             )}
           </div>
-        </>
+        </div>
       );
     };
 
     // List-style card for categories with multiple similar fields
     const renderListCard = () => {
       const listFields = category.fields.filter((f) => f.type === 'text' && !f.id.includes('name'));
-      const hasValidItems = listFields.some((f) => formData[f.id]);
-
+      
       return (
-        <>
-          <div className="text-center mb-8">
-            <p className="text-lg opacity-80 font-medium mb-2">2026</p>
-            <h3 className="text-3xl font-bold uppercase tracking-wider">{category.title}</h3>
+        <div className="relative z-10 flex flex-col h-full">
+           <div className="flex justify-between items-start mb-8 border-b border-white/10 pb-4">
+             <div>
+                 <p className="text-xs font-bold tracking-[0.2em] uppercase opacity-70 mb-1">{YEAR} COLLECTION</p>
+                 <h3 className="text-3xl font-black uppercase tracking-tight">{category.title}</h3>
+            </div>
+             <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center glass-circle">
+                 <span className="text-xl font-bold">#5</span>
+             </div>
           </div>
-          <div className="flex-1 flex flex-col justify-center space-y-3">
+
+          <div className="flex-1 flex flex-col justify-start space-y-4">
             {listFields.map((field, index) => {
               const value = formData[field.id];
-              if (!value && index > 0) return null;
+              // Show placeholder for first items if empty to show structure
+              if (!value && index > 2) return null; 
+              
               return (
-                <div key={field.id} className="flex items-center gap-4 bg-black/20 rounded-xl px-4 py-3">
-                  <span className="text-2xl font-extrabold opacity-60">#{index + 1}</span>
-                  <span className="text-xl font-bold">{(value as string) || field.placeholder}</span>
+                <div key={field.id} className="group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/5 skew-x-[-10deg] -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+                    <div className="flex alignItems-baseline gap-4 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                        <span className="text-3xl font-black opacity-30 italic">0{index + 1}</span>
+                        <span className="text-2xl font-bold w-full truncate">{(value as string) || "..."}</span>
+                    </div>
                 </div>
               );
             })}
           </div>
-        </>
+        </div>
       );
     };
 
@@ -104,12 +114,31 @@ export const WrappedCardPreview = forwardRef<HTMLDivElement, WrappedCardPreviewP
     return (
       <div
         ref={ref}
-        className="wrapped-card w-[320px] sm:w-[360px] flex flex-col p-8 text-white font-display"
+        className={cn(
+            "wrapped-card w-full max-w-[320px] sm:max-w-[380px] flex flex-col p-8 text-white font-display overflow-hidden",
+            "border border-white/20 shadow-2xl relative"
+        )}
         style={{ background: gradientStyles[category.gradient] }}
       >
+        {/* Noise Texture */}
+        <div className="absolute inset-0 bg-noise opacity-20 pointer-events-none mix-blend-overlay" />
+        
+        {/* Glass sheen */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
+        
+        {/* Content */}
         {isListType ? renderListCard() : renderGenericCard()}
-        <div className="mt-auto pt-6 text-center">
-          <p className="text-sm opacity-50 font-body font-medium tracking-wide">wrapped2026</p>
+
+        <div className="mt-auto pt-6 flex justify-between items-end opacity-60">
+           <div className="flex gap-1">
+               <div className="w-1 h-1 bg-white rounded-full" />
+               <div className="w-1 h-1 bg-white rounded-full" />
+               <div className="w-1 h-1 bg-white rounded-full" />
+           </div>
+           <p className="text-xs font-bold tracking-[0.2em] uppercase">
+             {userName && <span className="opacity-80">by {userName} • </span>}
+             {WATERMARK}
+           </p>
         </div>
       </div>
     );

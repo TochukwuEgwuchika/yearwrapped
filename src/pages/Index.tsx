@@ -1,18 +1,24 @@
-import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LandingHero } from '@/components/LandingHero';
+import { FeaturesStack } from '@/components/FeaturesStack';
 import { CategoryBrowser } from '@/components/CategoryBrowser';
 import { CardEditor } from '@/components/CardEditor';
 import { CustomCategoryCreator } from '@/components/CustomCategoryCreator';
 import { QuickWrappedSelector } from '@/components/QuickWrappedSelector';
+import { SavedWrappeds } from '@/components/SavedWrappeds';
+import { AchievementsPage } from '@/components/AchievementsPage';
 import { Subcategory } from '@/types/wrapped';
-
-type AppState = 'landing' | 'categories' | 'editor' | 'custom' | 'quick-wrapped';
+import { useApp } from '@/context/AppContext';
 
 const Index = () => {
-  const [appState, setAppState] = useState<AppState>('landing');
-  const [selectedCategory, setSelectedCategory] = useState<Subcategory | null>(null);
-  const [quickWrappedQueue, setQuickWrappedQueue] = useState<Subcategory[]>([]);
+  const { 
+    view, 
+    setAppState, 
+    selectedCategory, 
+    setSelectedCategory, 
+    quickWrappedQueue, 
+    setQuickWrappedQueue 
+  } = useApp();
 
   const handleGetStarted = () => setAppState('categories');
 
@@ -32,6 +38,10 @@ const Index = () => {
   const handleCreateCustom = () => setAppState('custom');
 
   const handleQuickWrapped = () => setAppState('quick-wrapped');
+
+  const handleViewSaved = () => setAppState('saved');
+
+  const handleViewAchievements = () => setAppState('achievements');
 
   const handleCustomSave = (category: Subcategory) => {
     setSelectedCategory(category);
@@ -58,36 +68,58 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background">
       <AnimatePresence mode="wait">
-        {appState === 'landing' && (
-          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        {view === 'landing' && (
+          <motion.div 
+            key="landing" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            transition={{ duration: 0.3 }}
+            className="overflow-x-hidden"
+          >
             <LandingHero onGetStarted={handleGetStarted} />
+            <FeaturesStack />
           </motion.div>
         )}
 
-        {appState === 'categories' && (
+        {view === 'categories' && (
           <motion.div key="categories" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
             <CategoryBrowser
               onSelectSubcategory={handleSelectCategory}
               onBack={handleBackToLanding}
               onCreateCustom={handleCreateCustom}
               onQuickWrapped={handleQuickWrapped}
+              onViewSaved={handleViewSaved}
+              onViewAchievements={handleViewAchievements}
             />
           </motion.div>
         )}
 
-        {appState === 'custom' && (
+        {view === 'saved' && (
+          <motion.div key="saved" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
+            <SavedWrappeds onBack={handleBackToCategories} />
+          </motion.div>
+        )}
+
+        {view === 'achievements' && (
+          <motion.div key="achievements" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
+            <AchievementsPage onBack={handleBackToCategories} />
+          </motion.div>
+        )}
+
+        {view === 'custom' && (
           <motion.div key="custom" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
             <CustomCategoryCreator onBack={handleBackToCategories} onSave={handleCustomSave} />
           </motion.div>
         )}
 
-        {appState === 'quick-wrapped' && (
+        {view === 'quick-wrapped' && (
           <motion.div key="quick" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
             <QuickWrappedSelector onBack={handleBackToCategories} onStart={handleQuickWrappedStart} />
           </motion.div>
         )}
 
-        {appState === 'editor' && selectedCategory && (
+        {view === 'editor' && selectedCategory && (
           <motion.div key="editor" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
             <CardEditor
               category={selectedCategory}
