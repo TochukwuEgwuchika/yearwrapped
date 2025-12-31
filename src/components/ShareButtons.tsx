@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Share2, Copy, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { toPng } from 'html-to-image';
+import { domToPng } from 'modern-screenshot';
 import { waitForImagesInNode } from '@/lib/images';
 
 interface ShareButtonsProps {
@@ -68,18 +68,14 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
       await waitForImagesInNode(cardRef.current);
 
       const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
-      const pixelRatio = isIOS ? 2 : 4;
+      const scale = isIOS ? 2 : 4;
 
       const options = {
-        pixelRatio,
-        cacheBust: true,
-        skipAutoScale: true,
+        scale,
         backgroundColor: '#ffffff',
-        filter: (node: unknown) => {
+        filter: (node: Node) => {
           if (node instanceof Element) {
-            if (node.classList?.contains('bg-noise')) {
-              return false;
-            }
+            if (node.classList?.contains('bg-noise')) return false;
           }
           return true;
         },
@@ -89,14 +85,14 @@ export const ShareButtons = ({ cardRef, title, imageDataUrl, onImageGenerated }:
       // Warm it up with a no-op render, then do the real render.
       if (isMobileSafari()) {
         try {
-          await toPng(cardRef.current, options);
+          await domToPng(cardRef.current, options);
           await new Promise((r) => setTimeout(r, 50));
         } catch {
           // ignore warm-up errors; we'll still attempt the real render
         }
       }
 
-      const dataUrl = await toPng(cardRef.current, options);
+      const dataUrl = await domToPng(cardRef.current, options);
 
       // Notify parent to save the wrapped
       onImageGenerated?.(dataUrl);
