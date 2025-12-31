@@ -20,7 +20,7 @@ import { Achievement } from "@/types/achievements";
 import { WrappedCardPreview } from "./WrappedCardPreview";
 import { ShareButtons } from "./ShareButtons";
 import { AchievementToast } from "./AchievementToast";
-import { toPng } from "html-to-image";
+import { domToPng } from "modern-screenshot";
 import { toast } from "sonner";
 import { gradientClasses } from "@/lib/gradients";
 import { YEAR } from "@/lib/config";
@@ -179,22 +179,38 @@ export const CardEditor = ({
     );
 
     const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent);
+    const isMobileSafari =
+      /Safari/i.test(navigator.userAgent) &&
+      !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/i.test(navigator.userAgent) &&
+      /Mobile|iP(ad|hone|od)/i.test(navigator.userAgent);
 
-    // iOS canvas memory is limited; keep a conservative pixelRatio.
-    const pixelRatio = isIOS ? 2 : 4;
+    // iOS canvas memory is limited; keep a conservative scale.
+    const scale = isIOS ? 2 : 4;
 
-    const dataUrl = await toPng(card, {
-      pixelRatio,
-      cacheBust: true,
-      skipAutoScale: true,
+    const options = {
+      scale,
       backgroundColor: "#ffffff",
-      filter: (node) => {
+      // Keep canvas size conservative on iOS to reduce blank exports.
+      maximumCanvasSize: isIOS ? 4096 : 0,
+      filter: (node: Node) => {
         if (node instanceof Element) {
           if (node.classList?.contains("bg-noise")) return false;
         }
         return true;
       },
-    });
+    };
+
+    // Safari warm-up render
+    if (isMobileSafari) {
+      try {
+        await domToPng(card, options);
+        await new Promise((r) => setTimeout(r, 50));
+      } catch {
+        // ignore warm-up errors
+      }
+    }
+
+    const dataUrl = await domToPng(card, options);
 
     return dataUrl;
   };
